@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mancala</title>
+    <style>
+        .button {
+            background-color: #ccc;
+            width: 75px;
+            height: 75px;
+            font-size: 16px;
+            position: absolute;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .label {
+            font-weight: bold;
+            background-color: #3498db;
+            border: 1px solid #2980b9;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 18px;
+            text-align: center;
+            width: 100px;
+            height: 173px;
+            display: inline-block;
+            margin-right: 5px;
+            position: absolute;
+            line-height: 173px;
+            vertical-align: middle;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .label-special {
+            background-color: #7dd5f8;
+            border: 1px solid #7dd5f8;
+            height: 50px;
+            line-height: normal;
+        }
+
+
+
+
+        body {
+            background-color: #7dd5f8;
+            display:flex;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 600px;
+            max-height: 300px;
+            margin-left: 50px;
+        }
+
+        .vscode-field {
+            background-color: #ffffff;
+            border: 1px solid #2c2c2c;
+            padding: 20px;
+            max-height: 300px;
+            width: 550px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        code {
+            color: #d4d4d4;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .backButton {
+            border: 2px solid #000000;
+            background-color: rgb(251, 255, 0);
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+            margin: 4px 2px;
+            position: fixed;
+            bottom: 5vh;
+            left: 90vw;
+        }
+    </style>
+    <script>
+        var lastTile = 0;
+        var newStones = 0;
+        var goAgain = false;
+        var captured = false;
+        var finalScore = 0;
+        var p1FinalScore = 0;
+        var p2FinalScore = 0;
+        function buttonClick(sender) {
+            // Declaring variables
+            var tiles = [];
+            tiles.push(document.getElementById("btnPOne0"))
+            tiles.push(document.getElementById("btnPOne1"))
+            tiles.push(document.getElementById("btnPOne2"))
+            tiles.push(document.getElementById("btnPOne3"))
+            tiles.push(document.getElementById("btnPOne4"))
+            tiles.push(document.getElementById("btnPOne5"))
+            tiles.push(document.getElementById("lblPOneScore"))
+            tiles.push(document.getElementById("btnPTwo7"))
+            tiles.push(document.getElementById("btnPTwo8"))
+            tiles.push(document.getElementById("btnPTwo9"))
+            tiles.push(document.getElementById("btnPTwo10"))
+            tiles.push(document.getElementById("btnPTwo11"))
+            tiles.push(document.getElementById("btnPTwo12"))
+            tiles.push(document.getElementById("lblPTwoScore"))
+            var oldStones;
+            var beginningTile = 0;
+            var loops = 0;
+            var stonesAdded = 1;
+            // sender is the button that the user pressed
+            var stones = parseInt(sender.innerText);
+            var selected = sender.id;
+            sender.innerText = "0";
+            // Looks at if the name of the button pressed is less than of equal to 8 to see if the number at the end of the button is less than 10
+            if (selected.length <= 8) {
+                // If it is, than it just makes the beginningTile the number at the end of the button
+                beginningTile = parseInt(selected.substring(7));
+            } else {
+                // If it is not, than it takes the number at the end of the button and adds 10 to end to get the actual number at the end of the button
+                beginningTile = parseInt(selected.substring(8)) + 10;
+            }
+
+            // Loop that adds one stone to each of the tiles ahead of the tile selected until there are no stones remaining
+            // Posttest loop so that the program can modify the loop control variable before the check occurs
+            do {
+                // Allows the array to loop when it reaches the end
+                loops = Math.floor((beginningTile + stonesAdded) / tiles.length);
+                // If the stone lands anywhere that is not in the score tile of the opposing player
+                if ((document.getElementById("lblPlayerTurn").innerText === "Player One Turn!" && (beginningTile + stonesAdded !== 13 || beginningTile + (stonesAdded - (loops * tiles.length)) !== 13)) || (document.getElementById("lblPlayerTurn").innerText === "Player Two Turn!" && beginningTile + (stonesAdded - (loops * tiles.length)) !== 6)) {
+                    // Takes the score in the tile and adds one to it
+                    var currentTile = tiles[beginningTile + (stonesAdded - (loops * tiles.length))];
+                    newStones = parseInt(currentTile.innerText);
+                    newStones += 1;
+                    currentTile.innerText = newStones;
+                } else { // If the stone lands on the score tile of the opposing player
+                    // Skips over the opposing player's scoring tile
+                    stones += 1;
+                }
+                stonesAdded += 1;
+            } while (stonesAdded <= stones);
+
+            // Finds the last tile by adding the beginning tile to the amount of stones that the tile contained, with the loops * tiles.length just being a preventative measure so that it still works if it reaches the end of the array
+            lastTile = beginningTile + (stonesAdded - (loops * tiles.length));
+
+            // If the final stone lands on a special space
+            // If the player has their final stone land in their scoring tile
+            if ((document.getElementById("lblPlayerTurn").innerText === "Player One Turn!" && lastTile === 7) ||
+                (document.getElementById("lblPlayerTurn").innerText === "Player Two Turn!" && lastTile === 14)) {
+                // Allows the player to have another turn
+                sender.disabled = true;
+                document.getElementById("lblSpecial").innerText = "Go Again!";
+                window.goAgain = true;
+            } else if ((document.getElementById("lblPlayerTurn").innerText === "Player One Turn!") &&
+                (parseInt(tiles[lastTile - 1].innerText) === 1) &&
+                (parseInt(tiles[12 - (lastTile - 1)].innerText) !== 0) &&
+                ((lastTile - 1) >= 0) &&
+                ((lastTile - 1) < 6)) { // If player 1 has their final stone land in a tile that was previously empty and is on their side of the board and the tile on the other side of the board is not empty
+                // Captures the stones in Player Two's tile
+                captureEvent(tiles);
+                oldStones = parseInt(document.getElementById("lblPOneScore").innerText);
+                document.getElementById("lblPOneScore").innerText = (newStones + oldStones).toString();
+            } else if ((document.getElementById("lblPlayerTurn").innerText === "Player Two Turn!") &&
+                (parseInt(tiles[lastTile - 1].innerText) === 1) &&
+                (parseInt(tiles[12 - (lastTile - 1)].innerText) !== 0) &&
+                ((lastTile - 1) > 6) &&
+                ((lastTile - 1) < 13)) { // If player 2 has their final stone land in a tile that was previously empty and is on their side of the board and the tile on the other side of the board is not empty
+                // Captures the stones in Player Two's tile
+                captureEvent(tiles);
+                oldStones = parseInt(document.getElementById("lblPTwoScore").innerText);
+                document.getElementById("lblPTwoScore").innerText = (newStones + oldStones).toString();
+            }
+
+            // Concluding the turn
+            // If it's Player One's turn
+            if (document.getElementById("lblPlayerTurn").innerText === "Player One Turn!") {
+                // If Player One has no stones left on their side of the board
+                if (tiles[0].innerText === "0" && tiles[1].innerText === "0" && tiles[2].innerText === "0" && tiles[3].innerText === "0" && tiles[4].innerText === "0" && tiles[5].innerText === "0") {
+                    // Moves all of Player Two's remaining stones to their score tile
+                    endGame(1);
+                    sender.disabled = true;
+                } else {
+                    // Goes through all of Player One's tiles and if a tile has no stones, it becomes unclickable
+                    for (var x = 0; x < 6; x++) {
+                        if (tiles[x].innerText !== "0") {
+                            tiles[x].disabled = false;
+                        }
+                    }
+                    if (!window.goAgain) {
+                        if (window.captured) {
+                            // If there are no stones left on Player Two's side
+                            if (tiles[7].innerText === "0" && tiles[8].innerText === "0" && tiles[9].innerText === "0" && tiles[10].innerText === "0" && tiles[11].innerText === "0" && tiles[12].innerText === "0") {
+                                // Moves all of Player Two's remaining stones to their score tile
+                                endGame(1);
+                                sender.disabled = true;
+                            } else {
+                                document.getElementById("lblSpecial").innerText = "Capture!";
+                            }
+                        } else {
+                            document.getElementById("lblSpecial").innerText = "";
+                        }
+
+                        // Changes the turn
+                        document.getElementById("lblPlayerTurn").innerText = "Player Two Turn!";
+                        for (var x = 7; x < 13; x++) {
+                            if (tiles[x].innerText !== "0") {
+                                tiles[x].disabled = false;
+                            }
+                        }
+                        document.getElementById("btnPOne0").disabled = true;
+                        document.getElementById("btnPOne1").disabled = true;
+                        document.getElementById("btnPOne2").disabled = true;
+                        document.getElementById("btnPOne3").disabled = true;
+                        document.getElementById("btnPOne4").disabled = true;
+                        document.getElementById("btnPOne5").disabled = true;
+                    }
+                }
+            }
+
+            // If it's Player Two's turn
+            else if (document.getElementById("lblPlayerTurn").innerText === "Player Two Turn!") {
+                // If Player Two has no stones left on their side of the board
+                if (tiles[7].innerText === "0" && tiles[8].innerText === "0" && tiles[9].innerText === "0" && tiles[10].innerText === "0" && tiles[11].innerText === "0" && tiles[12].innerText === "0") {
+                    // Moves all of Player Two's remaining stones to their score tile
+                    endGame(2);
+                    sender.disabled = true;
+                } else {
+                    // Goes through all of Player One's tiles and if a tile has no stones, it becomes unclickable
+                    for (var x = 7; x < 13; x++) {
+                        if (tiles[x].innerText !== "0") {
+                            tiles[x].disabled = false;
+                        }
+                    }
+                    if (!window.goAgain) {
+                        if (window.captured) {
+                            // If there are no stones left on Player Two's side
+                            if (tiles[0].innerText === "0" && tiles[1].innerText === "0" && tiles[2].innerText === "0" && tiles[3].innerText === "0" && tiles[4].innerText === "0" && tiles[5].innerText === "0") {
+                                // Moves all of Player Two's remaining stones to their score tile
+                                endGame(2);
+                                sender.disabled = true;
+                            } else {
+                                document.getElementById("lblSpecial").innerText = "Capture!";
+                            }
+                        } else {
+                            document.getElementById("lblSpecial").innerText = "";
+                        }
+
+                        // Changes the turn
+                        document.getElementById("lblPlayerTurn").innerText = "Player One Turn!";
+                        for (var x = 0; x < 6; x++) {
+                            if (tiles[x].innerText !== "0") {
+                                tiles[x].disabled = false;
+                            }
+                        }
+                        document.getElementById("btnPTwo12").disabled = true;
+                        document.getElementById("btnPTwo11").disabled = true;
+                        document.getElementById("btnPTwo10").disabled = true;
+                        document.getElementById("btnPTwo9").disabled = true;
+                        document.getElementById("btnPTwo8").disabled = true;
+                        document.getElementById("btnPTwo7").disabled = true;
+                    }
+                }
+            }
+            window.goAgain = false;
+            window.captured = false;
+        }
+
+        function captureEvent(tiles) {
+            // Steals the stones in the tile opposite to the tile the player landed in
+            newStones = parseInt(tiles[12 - (window.lastTile - 1)].innerText);
+            tiles[12 - (window.lastTile - 1)].innerText = "0";
+            tiles[window.lastTile - 1].innerText = "0";
+            newStones += 1;
+            window.captured = true;
+        }
+
+        function endGame(player) {
+            var tiles = [];
+            tiles.push(document.getElementById("btnPOne0"))
+            tiles.push(document.getElementById("btnPOne1"))
+            tiles.push(document.getElementById("btnPOne2"))
+            tiles.push(document.getElementById("btnPOne3"))
+            tiles.push(document.getElementById("btnPOne4"))
+            tiles.push(document.getElementById("btnPOne5"))
+            tiles.push(document.getElementById("lblPOneScore"))
+            tiles.push(document.getElementById("btnPTwo7"))
+            tiles.push(document.getElementById("btnPTwo8"))
+            tiles.push(document.getElementById("btnPTwo9"))
+            tiles.push(document.getElementById("btnPTwo10"))
+            tiles.push(document.getElementById("btnPTwo11"))
+            tiles.push(document.getElementById("btnPTwo12"))
+            tiles.push(document.getElementById("lblPTwoScore"))
+            if (player === 1) {
+                // Moves all of the remaining stones in player 2s tiles to their score tile
+                for (var i = 7; i < 13; i++) {
+                    finalScore += parseInt(tiles[i].innerText);
+                    tiles[i].innerText = "0";
+                }
+                p2FinalScore = parseInt(document.getElementById("lblPTwoScore").innerText);
+                p2FinalScore += finalScore;
+                document.getElementById("lblPTwoScore").innerText = p2FinalScore;
+                p1FinalScore = parseInt(document.getElementById("lblPOneScore").innerText);
+            } else if (player === 2) {
+                // Moves all of the remaining stones in player 1s tiles to their score tile
+                for (var i = 0; i < 6; i++) {
+                    finalScore += parseInt(tiles[i].innerText);
+                    tiles[i].innerText = "0";
+                }
+                p1FinalScore = parseInt(document.getElementById("lblPOneScore").innerText);
+                p1FinalScore += finalScore;
+                document.getElementById("lblPOneScore").innerText = p1FinalScore;
+                p2FinalScore = parseInt(document.getElementById("lblPTwoScore").innerText);
+            }
+
+            // Finds which player won
+            document.getElementById("lblPlayerTurn").innerText = "Game Over!";
+            if (p1FinalScore > p2FinalScore) {
+                document.getElementById("lblSpecial").innerText = "Player 1 Wins!";
+            } else if (p2FinalScore > p1FinalScore) {
+                document.getElementById("lblSpecial").innerText = "Player 2 Wins!";
+            } else {
+                document.getElementById("lblSpecial").innerText = "It's a tie!";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div align-items="center">
+        <label id="lblPTwoScore" class="label" style="margin-left: 24">0</label>
+
+        <button id="btnPOne0" class="button" style="margin-top: 100px; margin-left: 130px;" onclick="buttonClick(this)">4</button>
+        <button id="btnPOne1" class="button" style="margin-top: 100px; margin-left: 210px;" onclick="buttonClick(this)">4</button>
+        <button id="btnPOne2" class="button" style="margin-top: 100px; margin-left: 292px;" onclick="buttonClick(this)">4</button>
+        <button id="btnPOne3" class="button" style="margin-top: 100px; margin-left: 373px;" onclick="buttonClick(this)">4</button>
+        <button id="btnPOne4" class="button" style="margin-top: 100px; margin-left: 454px;" onclick="buttonClick(this)">4</button>
+        <button id="btnPOne5" class="button" style="margin-top: 100px; margin-left: 535px;" onclick="buttonClick(this)">4</button>
+
+        <button id="btnPTwo12" class="button" style="margin-left: 130px;" onclick="buttonClick(this)" disabled>4</button>
+        <button id="btnPTwo11" class="button" style="margin-left: 210px;" onclick="buttonClick(this)" disabled>4</button>
+        <button id="btnPTwo10" class="button" style="margin-left: 292px;" onclick="buttonClick(this)" disabled>4</button>
+        <button id="btnPTwo9" class="button" style="margin-left: 373px;" onclick="buttonClick(this)" disabled>4</button>
+        <button id="btnPTwo8" class="button" style="margin-left: 454px;" onclick="buttonClick(this)" disabled>4</button>
+        <button id="btnPTwo7" class="button" style="margin-left: 535px;" onclick="buttonClick(this)" disabled>4</button>
+        
+        <label id="lblPOneScore" class="label" style="margin-left: 641px;">0</label>
+
+        <label id="lblPlayerTurn" class="label label-special" style="margin-top: 250px; width: 716px;">Player One Turn!</label>
+        <label id="lblSpecial" class="label label-special" style="margin-top: 300px; width: 716px;"></label>
+        <h1 style="margin-top: 500px; text-align: center;">Code:</h1>
+
+        <div class="form-container">
+            <div class="vscode-field">
+                <code><object data="MancalaCode.txt" height="200px" width="2750px"></object></code>
+            </div>
+        </div>
+        <h3 style="margin-left: 275px;">Written in Visual Basic</h3>
+        <a class="backButton" href="main.html" style="text-decoration: none;">Back</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,483 @@
+// Programmer: Ethan Olivieri
+// Title: NOCTI Ordering App
+// Date: 4/3/2023 - 4/21/2023
+
+package com.example.computerpartsrus;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.function.UnaryOperator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.fxml.FXML;
+import javafx.print.PrinterJob;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.text.Text;
+import javafx.util.Duration;
+
+public class HelloController {
+    @FXML
+    private Button btnInformation;
+    @FXML
+    private TextField txtName;
+    @FXML
+    private TextField txtAddress;
+    @FXML
+    private TextField txtCity;
+    @FXML
+    private TextField txtState;
+    @FXML
+    private TextField txtZip;
+    @FXML
+    private TextField txtDate;
+    @FXML
+    private TextField txtQuantity;
+    @FXML
+    private ComboBox<String> cbxItem;
+    @FXML
+    private ComboBox<String> cbxType;
+    @FXML
+    private Button btnItems;
+    @FXML
+    private Label lblOutput;
+    @FXML
+    private Button btnFinish;
+    @FXML
+    private Label lblDaysOutput;
+    @FXML
+    private Button btnClear;
+    @FXML
+    private Button btnPrint;
+    @FXML
+    private Button btnClose;
+    @FXML
+    private CheckBox chbxMember;
+    public static final double TAX = 0.06;
+    public static final double NONMEMBERFEE = 0.015;
+    public static boolean member = false;
+    public static String name = "";
+    public static String address = "";
+    public static String city = "";
+    public static String state = "";
+    public static String zip = "";
+    public static Text print;
+    public static int quantity = 0;
+    public static String item = "";
+    public static String type = "";
+    public static int x = 0;
+    public static int y = 0;
+    public static int z = 0;
+    public static int fontSize = 12;
+    public static int totalDaysQuantity = 0;
+    public static double totalDaysProfit = 0.0;
+    public static double unitCost = 0.0;
+    public static double retailPrice = 0.0;
+    public static double profit = 0.0;
+    public static double subTotal = 0.0;
+    public static double totalProfit = 0.0;
+    public static double totalPreTax = 0.0;
+    public static double salesTax = 0.0;
+    public static double orderWithTax = 0.0;
+    public static double processingFees = 0.0;
+    public static double orderTotal = 0.0;
+    public static DecimalFormat df = new DecimalFormat("#0.00");
+    public static String[] items = new String[]{"ACME Laptop PC", "ACME Desktop PC", "ACME Monitor", "Hard Drive(s) 500 GB", "Wacky Wireless Mouse", "Monster Memory Sticks", "GForce Graphics Cards", "Monster Motherboards"};
+    public static String[][] types = new String[][]{{" ", " ", " ", "IDE", "Blue", "32GB", "Extreme", "Elite Series"}, {" ", " ", " ", "SATA", "Black", "64GB", " ", " "}, {" ", " ", " ", "SSD", "Pink", "128GB", " ", " "}};
+    public static double[][] unitCosts = new double[][]{{454.54, 818.17, 159.09, 32.71, 13.45, 63.63, 145.45, 109.08}, {0.0, 0.0, 0.0, 37.64, 12.17, 107.75, 0.0, 0.0}, {0.0, 0.0, 0.0, 54.54, 13.22, 261.82, 0.0, 0.0}};
+    public static double[][] retailPrices = new double[][]{{499.99, 899.99, 175.0, 35.98, 14.79, 69.99, 159.99, 119.99}, {0.0, 0.0, 0.0, 41.4, 13.39, 118.52, 0.0, 0.0}, {0.0, 0.0, 0.0, 59.99, 14.54, 288.0, 0.0, 0.0}};
+    public static double[][] profits = new double[][]{{45.45, 81.82, 15.91, 3.27, 1.34, 6.36, 14.54, 10.91}, {3.76, 1.22, 0.0, 0.0, 0.0, 10.77, 0.0, 0.0}, {0.0, 0.0, 0.0, 5.45, 1.32, 26.18, 0.0, 0.0}};
+
+    public HelloController() {
+    }
+
+    public void onbtnInformationClick() {
+        this.txtQuantity.setDisable(false);
+        this.cbxItem.setDisable(false);
+        this.txtName.setDisable(true);
+        this.txtAddress.setDisable(true);
+        this.txtCity.setDisable(true);
+        this.txtState.setDisable(true);
+        this.txtZip.setDisable(true);
+        this.btnInformation.setDisable(true);
+        this.chbxMember.setDisable(true);
+        if (this.chbxMember.isSelected()) {
+            member = true;
+        }
+
+        name = this.txtName.getText();
+        address = this.txtAddress.getText();
+        city = this.txtCity.getText();
+        state = this.txtState.getText();
+        zip = this.txtZip.getText();
+    }
+
+    public void onbtnItemsClick() {
+        quantity = Integer.parseInt(this.txtQuantity.getText());
+        item = (String)this.cbxItem.getValue();
+        type = (String)this.cbxType.getValue();
+
+        for(x = 0; x < items.length; ++x) {
+            if (item.equals(items[x])) {
+                if (x < 3) {
+                    unitCost = unitCosts[0][x];
+                    retailPrice = retailPrices[0][x];
+                    profit = profits[0][x];
+                } else {
+                    for(y = 0; y < types.length; ++y) {
+                        for(z = 0; z < types[y].length; ++z) {
+                            if (types[y][z].equals(type)) {
+                                unitCost = unitCosts[y][z];
+                                retailPrice = retailPrices[y][z];
+                                profit = profits[y][z];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        profit *= (double)quantity;
+        subTotal = (double)quantity * retailPrice;
+        totalProfit += profit;
+        totalPreTax += subTotal;
+        totalDaysQuantity += quantity;
+        totalDaysProfit += profit;
+        Label var10000;
+        String var10001;
+        if (type == null) {
+            var10000 = this.lblOutput;
+            var10001 = this.lblOutput.getText();
+            var10000.setText(var10001 + "Item: " + item + "      Quantity: " + quantity + "      Type: None\nUnit Cost: $" + df.format(unitCost) + "      Retail Price: $" + df.format(retailPrice) + "      Profit: $" + df.format(profit) + "     Sub-Total: $" + df.format(subTotal) + "\n\n");
+        } else {
+            var10000 = this.lblOutput;
+            var10001 = this.lblOutput.getText();
+            var10000.setText(var10001 + "Item: " + item + "      Quantity: " + quantity + "      Type: " + type + "\nUnit Cost: $" + df.format(unitCost) + "      Retail Price: $" + df.format(retailPrice) + "      Profit: $" + df.format(profit) + "     Sub-Total: $" + df.format(subTotal) + "\n\n");
+        }
+
+        this.btnFinish.setDisable(false);
+        this.txtQuantity.setText("");
+        this.btnItems.setDisable(true);
+        this.chbxMember.setDisable(true);
+    }
+
+    public void onbtnFinishClick() {
+        salesTax = totalPreTax * 0.06;
+        orderWithTax = totalPreTax + salesTax;
+        if (!(totalPreTax < 50.0) && !member) {
+            processingFees = totalPreTax * 0.015;
+        }
+
+        orderTotal = orderWithTax + processingFees;
+        Label var10000 = this.lblOutput;
+        String var10001 = this.lblOutput.getText();
+        var10000.setText(var10001 + "\n\n\n\nTotals: \nTotal Profit: $" + df.format(totalProfit) + "      Total: $" + df.format(totalPreTax) + "\nSales Tax: $" + df.format(salesTax) + "      Order With Tax: $" + df.format(orderWithTax) + "      Processing Fees: $" + df.format(processingFees) + "      Order Total: $" + df.format(orderTotal));
+        int var1 = totalDaysQuantity;
+        this.lblDaysOutput.setText("Cumulative Day's Quantity: " + var1 + "      Cumulative Day's Profit: $" + df.format(totalDaysProfit));
+        this.btnPrint.setDisable(false);
+        this.btnClear.setDisable(false);
+        this.btnFinish.setDisable(true);
+        this.txtQuantity.setDisable(true);
+        this.cbxItem.setDisable(true);
+        this.cbxType.setDisable(true);
+        this.chbxMember.setDisable(false);
+    }
+
+    public void onbtnPrintClick() {
+        String var10002;
+        if (member) {
+            var10002 = this.txtDate.getText();
+            print = new Text("\n" + var10002 + "\n\n\n\nName: " + name + "      Address: " + address + "\nCity: " + city + "      State: " + state + "      Zip: " + zip + "      Member: Yes\n\n\n\n" + this.lblOutput.getText() + "\n\n\n\n" + this.lblDaysOutput.getText());
+        } else {
+            var10002 = this.txtDate.getText();
+            print = new Text("\n" + var10002 + "\n\n\n\nName: " + name + "      Address: " + address + "\nCity: " + city + "      State: " + state + "      Zip: " + zip + "      Member: No\n\n\n\n" + this.lblOutput.getText() + "\n\n\n\n" + this.lblDaysOutput.getText());
+        }
+
+        PrinterJob job = PrinterJob.createPrinterJob();
+        if (job != null) {
+            boolean success = job.printPage(print);
+            if (success) {
+                job.endJob();
+            }
+        }
+
+    }
+
+    public void onbtnClearClick() {
+        String name = "";
+        String address = "";
+        String city = "";
+        String state = "";
+        String zip = "";
+        String print = "";
+        int quantity = false;
+        String item = "";
+        String type = "";
+        int x = false;
+        int y = false;
+        int z = false;
+        int totalDaysQuantity = false;
+        double totalDaysProfit = 0.0;
+        double unitCost = 0.0;
+        double retailPrice = 0.0;
+        double profit = 0.0;
+        double subTotal = 0.0;
+        double totalProfit = 0.0;
+        double totalPreTax = 0.0;
+        double salesTax = 0.0;
+        double orderWithTax = 0.0;
+        double processingFees = 0.0;
+        double orderTotal = 0.0;
+        this.lblOutput.setText("");
+        this.lblDaysOutput.setText("");
+        this.txtName.setText("");
+        this.txtAddress.setText("");
+        this.txtCity.setText("");
+        this.txtState.setText("");
+        this.txtZip.setText("");
+        this.txtName.setDisable(false);
+        this.txtAddress.setDisable(false);
+        this.txtCity.setDisable(false);
+        this.txtState.setDisable(false);
+        this.txtZip.setDisable(false);
+        this.btnPrint.setDisable(true);
+        this.btnClear.setDisable(true);
+        this.cbxItem.getSelectionModel().select((Object)null);
+        this.cbxType.getSelectionModel().select((Object)null);
+    }
+
+    public void onbtnCloseClick() {
+        System.exit(0);
+    }
+
+    public void oncbxItemEnter() {
+        this.cbxType.getItems().setAll(new String[0]);
+        item = (String)this.cbxItem.getValue();
+
+        label53:
+        for(x = 0; x < items.length; ++x) {
+            if (items[x].equals(item)) {
+                if (x >= 6) {
+                    this.cbxType.setDisable(false);
+                    this.cbxType.getItems().addAll(new String[]{types[0][x]});
+                    this.cbxType.getSelectionModel().select(types[0][x]);
+                    this.cbxType.setEditable(false);
+                    break;
+                }
+
+                if (x < 6 && x >= 3) {
+                    this.cbxType.setDisable(false);
+                    y = 0;
+
+                    while(true) {
+                        if (y > 2) {
+                            break label53;
+                        }
+
+                        this.cbxType.getItems().addAll(new String[]{types[y][x]});
+                        ++y;
+                    }
+                }
+
+                if (x < 3) {
+                    break;
+                }
+            }
+        }
+
+        if ((this.cbxType.getValue() != null || x == 0 || x == 1 || x == 2) && this.cbxItem.getValue() != null && this.txtQuantity.getText() != "") {
+            this.btnItems.setDisable(false);
+        } else {
+            this.btnItems.setDisable(true);
+        }
+
+    }
+
+    public void oncbxTypeEnter() {
+        if ((this.cbxType.getValue() != null || x == 0 || x == 1 || x == 2) && this.cbxItem.getValue() != null && this.txtQuantity.getText() != "") {
+            this.btnItems.setDisable(false);
+        } else {
+            this.btnItems.setDisable(true);
+        }
+
+    }
+
+    public void ontxtNameClick() {
+        if (this.txtName.getText() != "" && this.txtAddress.getText() != "" && this.txtCity.getText() != "" && this.txtState.getText() != "" && this.txtZip.getText() != "") {
+            this.btnInformation.setDisable(false);
+        } else {
+            this.btnInformation.setDisable(true);
+        }
+
+    }
+
+    public void ontxtAddressClick() {
+        if (this.txtName.getText() != "" && this.txtAddress.getText() != "" && this.txtCity.getText() != "" && this.txtState.getText() != "" && this.txtZip.getText() != "") {
+            this.btnInformation.setDisable(false);
+        } else {
+            this.btnInformation.setDisable(true);
+        }
+
+    }
+
+    public void ontxtCityClick() {
+        if (this.txtName.getText() != "" && this.txtAddress.getText() != "" && this.txtCity.getText() != "" && this.txtState.getText() != "" && this.txtZip.getText() != "") {
+            this.btnInformation.setDisable(false);
+        } else {
+            this.btnInformation.setDisable(true);
+        }
+
+    }
+
+    public void ontxtStateClick() {
+        if (this.txtName.getText() != "" && this.txtAddress.getText() != "" && this.txtCity.getText() != "" && this.txtState.getText() != "" && this.txtZip.getText() != "") {
+            this.btnInformation.setDisable(false);
+        } else {
+            this.btnInformation.setDisable(true);
+        }
+
+    }
+
+    public void ontxtZipClick() {
+        if (this.txtName.getText() != "" && this.txtAddress.getText() != "" && this.txtCity.getText() != "" && this.txtState.getText() != "" && this.txtZip.getText() != "") {
+            this.btnInformation.setDisable(false);
+        } else {
+            this.btnInformation.setDisable(true);
+        }
+
+    }
+
+    public void ontxtQuantityClick() {
+        UnaryOperator filter10;
+        if (this.txtQuantity.getLength() != 0) {
+            filter10 = (c) -> {
+                String newText = c.getControlNewText();
+                if (newText.matches("[0-9]{0,2}")) {
+                    c.setText(newText);
+                    c.setRange(0, this.txtQuantity.getText().length());
+                    return c;
+                } else {
+                    return newText.isEmpty() ? c : null;
+                }
+            };
+            this.txtQuantity.setTextFormatter(new TextFormatter(filter10));
+        } else {
+            filter10 = (c) -> {
+                String newText = c.getControlNewText();
+                if (newText.matches("[1-9]{0,2}")) {
+                    c.setText(newText);
+                    c.setRange(0, this.txtQuantity.getText().length());
+                    return c;
+                } else {
+                    return newText.isEmpty() ? c : null;
+                }
+            };
+            this.txtQuantity.setTextFormatter(new TextFormatter(filter10));
+        }
+
+        if ((this.cbxType.getValue() != null || x == 0 || x == 1 || x == 2) && this.cbxItem.getValue() != null && this.txtQuantity.getText() != "") {
+            this.btnItems.setDisable(false);
+        } else {
+            this.btnItems.setDisable(true);
+        }
+
+    }
+
+    public void initialize() throws IOException {
+        this.cbxItem.getItems().addAll(items);
+        UnaryOperator<TextFormatter.Change> filter = (c) -> {
+            String newText = c.getControlNewText();
+            if (newText.matches("[A-Za-z]{0,2}")) {
+                c.setText(newText.toUpperCase());
+                c.setRange(0, this.txtState.getText().length());
+                return c;
+            } else {
+                return newText.isEmpty() ? c : null;
+            }
+        };
+        this.txtState.setTextFormatter(new TextFormatter(filter));
+        this.txtZip.textProperty().addListener(new ChangeListener<String>() {
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                String newString = "";
+                if (!newValue.matches("\\d*")) {
+                    HelloController.this.txtZip.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+
+                if (HelloController.this.txtZip.getText().length() > 5) {
+                    newString = HelloController.this.txtZip.getText().substring(0, HelloController.this.txtZip.getText().length() - 1);
+                    HelloController.this.txtZip.setText(newString);
+                }
+
+            }
+        });
+        UnaryOperator<TextFormatter.Change> filter4 = (c) -> {
+            String newText = c.getControlNewText();
+            if (newText.matches("[1-9]{0,2}")) {
+                c.setText(newText);
+                c.setRange(0, this.txtQuantity.getText().length());
+                return c;
+            } else {
+                return newText.isEmpty() ? c : null;
+            }
+        };
+        this.txtQuantity.setTextFormatter(new TextFormatter(filter4));
+        UnaryOperator<TextFormatter.Change> filter2 = (c) -> {
+            String newText = c.getControlNewText();
+            if (newText.matches("[A-Za-z ]{0,30}")) {
+                c.setText(newText);
+                c.setRange(0, this.txtName.getText().length());
+                return c;
+            } else {
+                return newText.isEmpty() ? c : null;
+            }
+        };
+        this.txtName.setTextFormatter(new TextFormatter(filter2));
+        UnaryOperator<TextFormatter.Change> filter3 = (c) -> {
+            String newText = c.getControlNewText();
+            if (newText.matches("[A-Za-z]{0,20}")) {
+                c.setText(newText);
+                c.setRange(0, this.txtCity.getText().length());
+                return c;
+            } else {
+                return newText.isEmpty() ? c : null;
+            }
+        };
+        this.txtName.setTextFormatter(new TextFormatter(filter2));
+        UnaryOperator<TextFormatter.Change> filter6 = (c) -> {
+            String newText = c.getControlNewText();
+            if (newText.matches("[A-Za-z ]{0,20}")) {
+                c.setText(newText);
+                c.setRange(0, this.txtCity.getText().length());
+                return c;
+            } else {
+                return newText.isEmpty() ? c : null;
+            }
+        };
+        this.txtCity.setTextFormatter(new TextFormatter(filter6));
+        UnaryOperator<TextFormatter.Change> filter5 = (c) -> {
+            String newText = c.getControlNewText();
+            if (newText.matches("[A-Za-z 0-9]{0,50}")) {
+                c.setText(newText);
+                c.setRange(0, this.txtAddress.getText().length());
+                return c;
+            } else {
+                return newText.isEmpty() ? c : null;
+            }
+        };
+        this.txtAddress.setTextFormatter(new TextFormatter(filter5));
+        Timeline clock = new Timeline(new KeyFrame[]{new KeyFrame(Duration.ZERO, (e) -> {
+            this.txtDate.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }, new KeyValue[0]), new KeyFrame(Duration.seconds(1.0), new KeyValue[0])});
+        clock.setCycleCount(-1);
+        clock.play();
+    }
+}

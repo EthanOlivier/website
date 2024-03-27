@@ -1,0 +1,212 @@
+' Programmer: Ethan Olivieri 
+' Title: Mancala Game
+' Date: 1/2/24 - 1/24/24
+
+
+Public Class frmMain
+    Private lastTile As Integer
+    Private newStones As Integer
+    Private goAgain As Boolean = False
+    Private captured As Boolean = False
+    Private finalScore As Integer = 0
+    Private p1FinalScore As Integer = 0
+    Private p2FinalScore As Integer = 0
+
+
+    'Runs any time any of the twelve buttons are clicked
+    Private Sub Button_Click(sender As Object, e As EventArgs) Handles btnPOne0.Click, btnPOne1.Click, btnPOne2.Click, btnPOne3.Click, btnPOne4.Click, btnPOne5.Click, btnPTwo12.Click, btnPTwo11.Click, btnPTwo10.Click, btnPTwo9.Click, btnPTwo8.Click, btnPTwo7.Click
+        'Declaring variables
+        Dim tiles() = {btnPOne0, btnPOne1, btnPOne2, btnPOne3, btnPOne4, btnPOne5, lblPOneScore, btnPTwo7, btnPTwo8, btnPTwo9, btnPTwo10, btnPTwo11, btnPTwo12, lblPTwoScore}
+        Dim oldStones As Integer
+        Dim beginningTile As Integer = 0
+        Dim loops As Integer = 0
+        Dim stonesAdded As Integer = 1
+        'sender is the button that the user pressed
+        Dim stones As Integer = sender.Text
+        Dim selected As String = sender.Name
+        sender.Text = "0"
+        'Looks at if the name of the button pressed is less than of equal to 8 to see if the number at the end of the button is less than 10
+        If (sender.Name.Length <= 8) Then
+            ' If it is, than it just makes the beginningTile the number at the end of the button
+            Integer.TryParse(sender.Name(7), beginningTile)
+        Else
+            ' If it is not, than it takes the number at the end of the button and adds 10 to end to get the actual number at the end of the button
+            Integer.TryParse(sender.Name(8), beginningTile)
+            beginningTile += 10
+        End If
+
+        'Loop that adds one stone to each of the tiles ahead of the tile selected until there are no stones remaining
+        'Posttest loop so that the program can modify the loop control variable before the check occurs
+        Do
+            'Allows the array to loop when it reaches the end
+            loops = Math.Floor((beginningTile + stonesAdded) / tiles.Length)
+            'If the stone lands anywhere that is not in the score tile of the opposing player
+            If (lblPlayerTurn.Text = "Player One Turn!" AndAlso (beginningTile + stonesAdded <> 13 OrElse beginningTile + (stonesAdded - (loops * tiles.Length)) <> 13)) OrElse (lblPlayerTurn.Text = "Player Two Turn!" AndAlso beginningTile + (stonesAdded - (loops * tiles.Length)) <> 6) Then
+                'Takes the score in the tile and adds one to it
+                newStones = tiles(beginningTile + (stonesAdded - (loops * tiles.Length))).Text
+                newStones += 1
+                tiles(beginningTile + (stonesAdded - (loops * tiles.Length))).Text = newStones
+            Else 'If the stone lands on the score tile of the opposing player
+                'Skips over the opposing players scoring tile
+                stones += 1
+            End If
+            stonesAdded += 1
+        Loop While stonesAdded <= stones
+        'Finds the last tile by adding the beginning tile to the amount of stones that the tile contained, with the loops * tiles.Length just being a preventative measure so that it still works if it reaches the end of the array
+        lastTile = beginningTile + (stonesAdded - (loops * tiles.Length))
+
+        'If the final stone lands on a special space
+        'If the player has their final stone land in their scoring tile
+        If (lblPlayerTurn.Text = "Player One Turn!" AndAlso lastTile = 7) OrElse (lblPlayerTurn.Text = "Player Two Turn!" AndAlso lastTile = 14) Then
+            'Allows the player to have another turn
+            sender.Enabled = False
+            lblSpecial.Text = "Go Again!"
+            goAgain = True
+        ElseIf (lblPlayerTurn.Text = "Player One Turn!") AndAlso (tiles(lastTile - 1).Text() = "1") AndAlso (tiles(12 - (lastTile - 1)).Text <> "0") AndAlso ((lastTile - 1) >= 0) AndAlso ((lastTile - 1) < 6) Then 'If player 1 has their final stone land in a tile that was previously empty and is on their side of the board and the tile on the other side of the board is not empty
+            'Captures the stones in Player Twos tile
+            CaptureEvent(tiles)
+            Integer.TryParse(lblPOneScore.Text, oldStones)
+            lblPOneScore.Text = (newStones + oldStones).ToString
+        ElseIf (lblPlayerTurn.Text = "Player Two Turn!") AndAlso (tiles(lastTile - 1).Text() = "1") AndAlso (tiles(12 - (lastTile - 1)).Text <> "0") AndAlso ((lastTile - 1) > 6) AndAlso ((lastTile - 1) < 13) Then 'If player 2 has their final stone land in a tile that was previously empty and is on their side of the board and the tile on the other side of the board is not empty
+            'Captures the stones in Player Twos tile
+            CaptureEvent(tiles)
+            Integer.TryParse(lblPTwoScore.Text, oldStones)
+            lblPTwoScore.Text = (newStones + oldStones).ToString
+        End If
+
+        'Concluding the turn
+        'If its Player Ones turn
+        If lblPlayerTurn.Text = "Player One Turn!" Then
+            'If Player One has no stones left on their side of the board
+            If tiles(0).Text = "0" AndAlso tiles(1).Text = "0" AndAlso tiles(2).Text = "0" AndAlso tiles(3).Text = "0" AndAlso tiles(4).Text = "0" AndAlso tiles(5).Text = "0" Then
+                'Moves all of Player Twos remaining stones to their score tile
+                EndGame(1)
+                sender.Enabled = False
+            Else
+                'Goes through all of Player Ones tiles and if a tile has no stones, it becomes unclickable
+                For x As Integer = 0 To 5
+                    If tiles(x).Text <> "0" Then
+                        tiles(x).Enabled = True
+                    End If
+                Next
+                If goAgain = False Then
+                    If captured = True Then
+                        'If there are no stones left on Player Twos side
+                        If tiles(7).Text = "0" AndAlso tiles(8).Text = "0" AndAlso tiles(9).Text = "0" AndAlso tiles(10).Text = "0" AndAlso tiles(11).Text = "0" AndAlso tiles(12).Text = "0" Then
+                            'Moves all of Player Twos remaining stones to their score tile
+                            EndGame(1)
+                            sender.Enabled = False
+                        Else
+                            lblSpecial.Text = "Capture!"
+                        End If
+                    Else
+                        lblSpecial.Text = ""
+                    End If
+
+                    'Changes the turn
+                    lblPlayerTurn.Text = "Player Two Turn!"
+                    For x As Integer = 7 To 12
+                        If tiles(x).Text <> "0" Then
+                            tiles(x).Enabled = True
+                        End If
+                    Next
+                    btnPOne0.Enabled = False
+                    btnPOne1.Enabled = False
+                    btnPOne2.Enabled = False
+                    btnPOne3.Enabled = False
+                    btnPOne4.Enabled = False
+                    btnPOne5.Enabled = False
+                End If
+            End If
+                
+
+            'If its Player Twos turn
+        ElseIf lblPlayerTurn.Text = "Player Two Turn!" Then
+            'If Player Two has no stones left on their side of the board
+            If tiles(7).Text = "0" AndAlso tiles(8).Text = "0" AndAlso tiles(9).Text = "0" AndAlso tiles(10).Text = "0" AndAlso tiles(11).Text = "0" AndAlso tiles(12).Text = "0" Then
+                'Moves all of Player Twos remaining stones to their score tile
+                EndGame(2)
+                sender.Enabled = False
+            Else
+                'Goes through all of Player Ones tiles and if a tile has no stones, it becomes unclickable
+                For x As Integer = 7 To 12
+                    If tiles(x).Text <> "0" Then
+                        tiles(x).Enabled = True
+                    End If
+                Next
+                If goAgain = False Then
+                    If captured = True Then
+                        'If there are no stones left on Player Twos side
+                        If tiles(0).Text = "0" AndAlso tiles(1).Text = "0" AndAlso tiles(2).Text = "0" AndAlso tiles(3).Text = "0" AndAlso tiles(4).Text = "0" AndAlso tiles(5).Text = "0" Then
+                            'Moves all of Player Twos remaining stones to their score tile
+                            EndGame(2)
+                            sender.Enabled = False
+                        Else
+                            lblSpecial.Text = "Capture!"
+                        End If
+                    Else
+                        lblSpecial.Text = ""
+                    End If
+
+                    'Changes the turn
+                    lblPlayerTurn.Text = "Player One Turn!"
+                    For x As Integer = 0 To 5
+                        If tiles(x).Text <> "0" Then
+                            tiles(x).Enabled = True
+                        End If
+                    Next
+                    btnPTwo12.Enabled = False
+                    btnPTwo11.Enabled = False
+                    btnPTwo10.Enabled = False
+                    btnPTwo9.Enabled = False
+                    btnPTwo8.Enabled = False
+                    btnPTwo7.Enabled = False
+                End If
+            End If
+        End If
+        goAgain = False
+        captured = False
+    End Sub
+    Private Sub CaptureEvent(tiles)
+        'Steals the stones in the tile opposite to the tile the player landed in
+        Integer.TryParse(tiles(12 - (lastTile - 1)).Text, newStones)
+        tiles(12 - (lastTile - 1)).Text = "0"
+        tiles(lastTile - 1).Text() = "0"
+        newStones += 1
+        captured = True
+    End Sub
+    Private Sub EndGame(ByRef player As Integer)
+        Dim tiles() = {btnPOne0, btnPOne1, btnPOne2, btnPOne3, btnPOne4, btnPOne5, lblPOneScore, btnPTwo7, btnPTwo8, btnPTwo9, btnPTwo10, btnPTwo11, btnPTwo12, lblPTwoScore}
+        If player = 1 Then
+            'Moves all of the remaining stones in player 2s tiles to their score tile
+            For i As Integer = 7 To 12
+                finalScore += tiles(i).Text
+                tiles(i).Text = "0"
+            Next
+            Integer.TryParse(lblPTwoScore.Text, p2FinalScore)
+            p2FinalScore += finalScore
+            lblPTwoScore.Text = p2FinalScore
+            Integer.TryParse(lblPOneScore.Text, p1FinalScore)
+        ElseIf player = 2 Then
+            'Moves all of the remaining stones in player 2s tiles to their score tile
+            For i As Integer = 0 To 5
+                finalScore += tiles(i).Text
+                tiles(i).Text = "0"
+            Next
+            Integer.TryParse(lblPOneScore.Text, p1FinalScore)
+            p1FinalScore += finalScore
+            lblPOneScore.Text = p1FinalScore
+            Integer.TryParse(lblPTwoScore.Text, p2FinalScore)
+        End If
+
+        'Finds which player won
+        lblPlayerTurn.Text = "Game Over!"
+        If p1FinalScore > p2FinalScore Then
+            lblSpecial.Text = "Player 1 Wins!"
+        ElseIf p2FinalScore > p1FinalScore Then
+            lblSpecial.Text = "Player 2 Wins!"
+        Else
+            lblSpecial.Text = "It's a tie!"
+        End If
+    End Sub
+End Class

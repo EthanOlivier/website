@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordering App</title>
+    <style>
+        body {
+            background-color: #7dd5f8;
+            display:flex;
+            height: 100vh;
+            margin: 0;
+        }
+        .backButton {
+            border: 2px solid #000000;
+            background-color: rgb(251, 255, 0);
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+            margin: 4px 2px;
+            position: fixed;
+            bottom: 5vh;
+            left: 90vw;
+        }
+        .form-container {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 600px;
+            max-height: 300px;
+            margin-top: 400px;
+            margin-left: -350px;
+        }
+
+        .vscode-field {
+            background-color: #ffffff;
+            border: 1px solid #2c2c2c;
+            padding: 20px;
+            max-height: 300px;
+            width: 550px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        code {
+            color: #d4d4d4;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body onload="dateTimeGet()">
+    <script>
+        const TAX = 0.06;
+        const NONMEMBERFEE = 0.015;
+        let member = false;
+        let name = "";
+        let address = "";
+        let city = "";
+        let state = "";
+        let zip = "";
+        let print;
+        let quantity = 0;
+        let item = "";
+        let type = "";
+        let x = 0;
+        let y = 0;
+        let z = 0;
+        let fontSize = 12;
+        let totalDaysQuantity = 0;
+        let totalDaysProfit = 0.0;
+        let unitCost = 0.0;
+        let retailPrice = 0.0;
+        let profit = 0.0;
+        let subTotal = 0.0;
+        let totalProfit = 0.0;
+        let totalPreTax = 0.0;
+        let salesTax = 0.0;
+        let orderWithTax = 0.0;
+        let processingFees = 0.0;
+        let orderTotal = 0.0;
+        const df = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const items = ["ACME Laptop PC", "ACME Desktop PC", "ACME Monitor", "Hard Drive(s) 500 GB", "Wacky Wireless Mouse", "Monster Memory Sticks", "GForce Graphics Cards", "Monster Motherboards"];
+        const types = [[" ", " ", " ", "IDE", "Blue", "32GB", "Extreme", "Elite Series"], [" ", " ", " ", "SATA", "Black", "64GB", " ", " "], [" ", " ", " ", "SSD", "Pink", "128GB", " ", " "]];
+        const unitCosts = [[454.54, 818.17, 159.09, 32.71, 13.45, 63.63, 145.45, 109.08], [0.0, 0.0, 0.0, 37.64, 12.17, 107.75, 0.0, 0.0], [0.0, 0.0, 0.0, 54.54, 13.22, 261.82, 0.0, 0.0]];
+        const retailPrices = [[499.99, 899.99, 175.0, 35.98, 14.79, 69.99, 159.99, 119.99], [0.0, 0.0, 0.0, 41.4, 13.39, 118.52, 0.0, 0.0], [0.0, 0.0, 0.0, 59.99, 14.54, 288.0, 0.0, 0.0]];
+        const profits = [[45.45, 81.82, 15.91, 3.27, 1.34, 6.36, 14.54, 10.91], [3.76, 1.22, 0.0, 0.0, 0.0, 10.77, 0.0, 0.0], [0.0, 0.0, 0.0, 5.45, 1.32, 26.18, 0.0, 0.0]];
+
+        function onbtnInformationClick() {
+            document.getElementById("txtQuantity").disabled = false;
+            document.getElementById("cbxItem").disabled = false;
+            document.getElementById("txtName").disabled = true;
+            document.getElementById("txtAddress").disabled = true;
+            document.getElementById("txtCity").disabled = true;
+            document.getElementById("txtState").disabled = true;
+            document.getElementById("txtZip").disabled = true;
+            document.getElementById("btnInformation").disabled = true;
+            document.getElementById("chbxMember").disabled = true;
+            if (document.getElementById("chbxMember").checked) {
+                member = true;
+            }
+
+            var item = document.getElementById("cbxItem");
+            for (var i = 0; i < items.length; i++) {
+                var option = document.createElement("option");
+                option.text = items[i];
+                option.value = items[i];
+                item.appendChild(option);
+            }
+
+            name = document.getElementById("txtName").value;
+            address = document.getElementById("txtAddress").value;
+            city = document.getElementById("txtCity").value;
+            state = document.getElementById("txtState").value;
+            zip = document.getElementById("txtZip").value;
+        }
+
+        function onbtnItemsClick() {
+            quantity = parseInt(document.getElementById("txtQuantity").value);
+            item = document.getElementById("cbxItem").value;
+            type = document.getElementById("cbxType").value;
+
+            for (x = 0; x < items.length; ++x) {
+                if (item === items[x]) {
+                    if (x < 3) {
+                        unitCost = unitCosts[0][x];
+                        retailPrice = retailPrices[0][x];
+                        profit = profits[0][x];
+                    } else {
+                        for (y = 0; y < types.length; ++y) {
+                            for (z = 0; z < types[y].length; ++z) {
+                                if (types[y][z] === type) {
+                                    unitCost = unitCosts[y][z];
+                                    retailPrice = retailPrices[y][z];
+                                    profit = profits[y][z];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            profit *= quantity;
+            subTotal = quantity * retailPrice;
+            totalProfit += profit;
+            totalPreTax += subTotal;
+            totalDaysQuantity += quantity;
+            totalDaysProfit += profit;
+
+            
+
+            let output = "";
+            if (type === null) {
+                output += "Item: " + item + "      Quantity: " + quantity + "      Type: None\nUnit Cost: $" + df.format(unitCost) + "      Retail Price: $" + df.format(retailPrice) + "      Profit: $" + df.format(profit) + "     Sub-Total: $" + df.format(subTotal) + "\n\n";
+            } else {
+                output += "Item: " + item + "      Quantity: " + quantity + "      Type: " + type + "\nUnit Cost: $" + df.format(unitCost) + "      Retail Price: $" + df.format(retailPrice) + "      Profit: $" + df.format(profit) + "     Sub-Total: $" + df.format(subTotal) + "\n\n";
+            }
+
+            document.getElementById("lblOutput").innerText = output;
+
+            document.getElementById("btnFinish").disabled = false;
+            document.getElementById("txtQuantity").value = "";
+            document.getElementById("btnItems").disabled = true;
+            document.getElementById("chbxMember").disabled = true;
+        }
+
+        function onbtnFinishClick() {
+            salesTax = totalPreTax * 0.06;
+            orderWithTax = totalPreTax + salesTax;
+            if (!(totalPreTax < 50.0) && !member) {
+                processingFees = totalPreTax * 0.015;
+            }
+
+            orderTotal = orderWithTax + processingFees;
+            let output = "\n\n\n\nTotals: \nTotal Profit: $" + df.format(totalProfit) + "      Total: $" + df.format(totalPreTax) + "\nSales Tax: $" + df.format(salesTax) + "      Order With Tax: $" + df.format(orderWithTax) + "      Processing Fees: $" + df.format(processingFees) + "      Order Total: $" + df.format(orderTotal);
+            document.getElementById("lblOutput").innerText += output;
+            let var1 = totalDaysQuantity;
+            document.getElementById("lblDaysOutput").innerText = "Cumulative Day's Quantity: " + var1 + "      Cumulative Day's Profit: $" + df.format(totalDaysProfit);
+            document.getElementById("btnClear").disabled = false;
+            document.getElementById("btnFinish").disabled = true;
+            document.getElementById("txtQuantity").disabled = true;
+            document.getElementById("cbxItem").disabled = true;
+            document.getElementById("cbxType").disabled = true;
+            document.getElementById("chbxMember").disabled = false;
+        }
+
+        function oncbxItemEnter() {
+            document.getElementById("cbxType").innerHTML = ""; // Clear the previous options
+            item = document.getElementById("cbxItem").value;
+
+            label53:
+            for (x = 0; x < items.length; ++x) {
+                if (items[x] === item) {
+                    if (x >= 6) {
+                        document.getElementById("cbxType").disabled = false;
+                        document.getElementById("cbxType").innerHTML += '<option>' + types[0][x] + '</option>';
+                        document.getElementById("cbxType").value = types[0][x];
+                        document.getElementById("cbxType").disabled = true; // Disable editing
+                        break;
+                    }
+
+                    if (x < 6 && x >= 3) {
+                        document.getElementById("cbxType").disabled = false;
+                        y = 0;
+
+                        while (true) {
+                            if (y > 2) {
+                                break label53;
+                            }
+
+                            document.getElementById("cbxType").innerHTML += '<option>' + types[y][x] + '</option>';
+                            ++y;
+                        }
+                    }
+
+                    if (x < 3) {
+                        break;
+                    }
+                }
+            }
+
+            if ((document.getElementById("cbxType").value !== null || x === 0 || x === 1 || x === 2) && document.getElementById("cbxItem").value !== null && document.getElementById("txtQuantity").value !== "") {
+                document.getElementById("btnItems").disabled = false;
+            } else {
+                document.getElementById("btnItems").disabled = true;
+            }
+        }
+
+        function oncbxTypeEnter() {
+            if ((document.getElementById("cbxType").value !== null || x === 0 || x === 1 || x === 2) && document.getElementById("cbxItem").value !== null && document.getElementById("txtQuantity").value !== "") {
+                document.getElementById("btnItems").disabled = false;
+            } else {
+                document.getElementById("btnItems").disabled = true;
+            }
+        }
+
+        function onbtnClearClick() {
+            var name = "";
+            var address = "";
+            var city = "";
+            var state = "";
+            var zip = "";
+            var print = "";
+            var quantity = false;
+            var item = "";
+            var type = "";
+            var x = false;
+            var y = false;
+            var z = false;
+            var totalDaysQuantity = false;
+            var totalDaysProfit = 0.0;
+            var unitCost = 0.0;
+            var retailPrice = 0.0;
+            var profit = 0.0;
+            var subTotal = 0.0;
+            var totalProfit = 0.0;
+            var totalPreTax = 0.0;
+            var salesTax = 0.0;
+            var orderWithTax = 0.0;
+            var processingFees = 0.0;
+            var orderTotal = 0.0;
+            document.getElementById("lblOutput").innerText = "";
+            document.getElementById("txtName").value = "";
+            document.getElementById("txtAddress").value = "";
+            document.getElementById("txtCity").value = "";
+            document.getElementById("txtState").value = "";
+            document.getElementById("txtZip").value = "";
+            document.getElementById("txtName").disabled = false;
+            document.getElementById("txtAddress").disabled = false;
+            document.getElementById("txtCity").disabled = false;
+            document.getElementById("txtState").disabled = false;
+            document.getElementById("txtZip").disabled = false;
+            document.getElementById("btnPrint").disabled = true;
+            document.getElementById("btnClear").disabled = true;
+            document.getElementById("cbxItem").selectedIndex = -1;
+            document.getElementById("cbxType").selectedIndex = -1;
+        }
+        function oncbxTypeEnter() {
+            var cbxTypeValue = document.getElementById("cbxType").value;
+            var cbxItemValue = document.getElementById("cbxItem").value;
+            var txtQuantityValue = document.getElementById("txtQuantity").value;
+
+            if ((cbxTypeValue !== null || x === 0 || x === 1 || x === 2) && cbxItemValue !== null && txtQuantityValue !== "") {
+                document.getElementById("btnItems").disabled = false;
+            } else {
+                document.getElementById("btnItems").disabled = true;
+            }
+        }
+        function ontxtNameClick() 
+        {
+            var newText = event.target.value.replace(/[^A-Za-z ]/g, "").slice(0, 30);
+            event.target.value = newText;
+            var txtNameValue = document.getElementById("txtName").value;
+            var txtAddressValue = document.getElementById("txtAddress").value;
+            var txtCityValue = document.getElementById("txtCity").value;
+            var txtStateValue = document.getElementById("txtState").value;
+            var txtZipValue = document.getElementById("txtZip").value;
+
+            if (txtNameValue !== "" && txtAddressValue !== "" && txtCityValue !== "" && txtStateValue !== "" && txtZipValue !== "") {
+                document.getElementById("btnInformation").disabled = false;
+            } else {
+                document.getElementById("btnInformation").disabled = true;
+            }
+        }
+        function ontxtAddressClick() {
+            var newText = event.target.value.replace(/[^A-Za-z0-9 ]/g, "").slice(0, 50);
+            event.target.value = newText;
+            var txtNameValue = document.getElementById("txtName").value;
+            var txtAddressValue = document.getElementById("txtAddress").value;
+            var txtCityValue = document.getElementById("txtCity").value;
+            var txtStateValue = document.getElementById("txtState").value;
+            var txtZipValue = document.getElementById("txtZip").value;
+
+            if (txtNameValue !== "" && txtAddressValue !== "" && txtCityValue !== "" && txtStateValue !== "" && txtZipValue !== "") {
+                document.getElementById("btnInformation").disabled = false;
+            } else {
+                document.getElementById("btnInformation").disabled = true;
+            }
+        }
+        function ontxtCityClick() {
+            var newText = event.target.value.replace(/[^ a-zA-Z]+$/, "").slice(0, 20);
+            event.target.value = newText;
+            var txtNameValue = document.getElementById("txtName").value;
+            var txtAddressValue = document.getElementById("txtAddress").value;
+            var txtCityValue = document.getElementById("txtCity").value;
+            var txtStateValue = document.getElementById("txtState").value;
+            var txtZipValue = document.getElementById("txtZip").value;
+
+            if (txtNameValue !== "" && txtAddressValue !== "" && txtCityValue !== "" && txtStateValue !== "" && txtZipValue !== "") {
+                document.getElementById("btnInformation").disabled = false;
+            } else {
+                document.getElementById("btnInformation").disabled = true;
+            }
+        }
+        function ontxtStateClick() {
+            var newText = event.target.value.toUpperCase().slice(0, 2);
+            event.target.value = newText;
+            var newValue = event.target.value.replace(/[^a-zA-Z]+$/, "");
+            event.target.value = newValue;
+            var txtNameValue = document.getElementById("txtName").value;
+            var txtAddressValue = document.getElementById("txtAddress").value;
+            var txtCityValue = document.getElementById("txtCity").value;
+            var txtStateValue = document.getElementById("txtState").value;
+            var txtZipValue = document.getElementById("txtZip").value;
+
+            if (txtNameValue !== "" && txtAddressValue !== "" && txtCityValue !== "" && txtStateValue !== "" && txtZipValue !== "") {
+                document.getElementById("btnInformation").disabled = false;
+            } else {
+                document.getElementById("btnInformation").disabled = true;
+            }
+        }
+        function ontxtZipClick() {
+            var newValue = event.target.value.replace(/\D/g, "");
+            if (newValue.length > 5) {
+                newValue = newValue.substring(0, newValue.length - 1);
+            }
+            event.target.value = newValue;
+            var txtNameValue = document.getElementById("txtName").value;
+            var txtAddressValue = document.getElementById("txtAddress").value;
+            var txtCityValue = document.getElementById("txtCity").value;
+            var txtStateValue = document.getElementById("txtState").value;
+            var txtZipValue = document.getElementById("txtZip").value;
+
+            if (txtNameValue !== "" && txtAddressValue !== "" && txtCityValue !== "" && txtStateValue !== "" && txtZipValue !== "") {
+                document.getElementById("btnInformation").disabled = false;
+            } else {
+                document.getElementById("btnInformation").disabled = true;
+            }
+        }
+        function ontxtQuantityClick() {
+            var newText = event.target.value.replace(/\D/g, "");
+            var txtQuantity = document.getElementById("txtQuantity");
+            var cbxTypeValue = document.getElementById("cbxType").value;
+            var cbxItemValue = document.getElementById("cbxItem").value;
+
+            txtQuantity.addEventListener("input", function(event) {
+                event.target.value = event.target.value.replace(/[^0-9]/g, "").slice(0, 2);
+            });
+            if (newText.length > 2) {
+                newText = newText.substring(0, newText.length - 1);
+            }
+            if (newText === "0")
+            {
+                newText = "";
+            }
+            event.target.value = newText;
+
+            if ((cbxTypeValue !== null || x === 0 || x === 1 || x === 2) && cbxItemValue !== null && txtQuantity.value !== "") {
+                document.getElementById("btnItems").disabled = false;
+            } else {
+                document.getElementById("btnItems").disabled = true;
+            }
+        }
+        function dateTimeGet() {
+            const date = new Date();
+            document.getElementById("lblDate").textContent = date.toDateString();
+        }
+    </script>
+
+
+
+    <button id="btnInformation" disabled style="position: absolute; margin-left: 120px; margin-top: 175px; height: 33px; width: 149px;" onclick="onbtnInformationClick()">Enter</button>
+
+    <label style="height: 25px; width: 125px;">Customer Name:</label>
+    <input id="txtName" style="position: absolute; margin-top: 25px;" onkeyup="ontxtNameClick()" placeholder="Joe Shmoe" />
+
+    <label style="position: absolute; margin-left: 210px; margin-top: 6px;">Address:</label>
+    <input id="txtAddress" style="position: absolute; margin-left: 210px; margin-top: 25px;" onkeyup="ontxtAddressClick()" placeholder="123 Front Street" />
+
+    <label style="margin-top: 51px; margin-left: -125px;">City:</label>
+    <input id="txtCity" style="position: absolute; margin-top: 75px;" onkeyup="ontxtCityClick()" placeholder="Any Town" />
+
+    <label style="position: absolute; margin-left: 210px; margin-top: 50px;">State:</label>
+    <input id="txtState" style="position: absolute; margin-left: 210px; margin-top: 75px;" onkeyup="ontxtStateClick()" placeholder="PA" />
+
+    <label style="margin-top: 110px; margin-left: -30px;">Zip:</label>
+    <input id="txtZip" style="position: absolute; margin-top: 130px;" onkeyup="ontxtZipClick()" placeholder="54321" />
+
+    <select id="cbxItem" disabled style="position: absolute; margin-left: 100px; margin-top: 275px; height: 25px; width: 193px;" onchange="oncbxItemEnter()"></select>
+    <input id="txtQuantity" disabled style="position: absolute; margin-top: 275px; height: 25px; width: 46px;" onkeyup="ontxtQuantityClick()" />
+
+    <select id="cbxType" disabled style="position: absolute; margin-left: 310px; margin-top: 275px; height: 25px; width: 193px;" onchange="oncbxTypeEnter()"></select>
+
+    <button id="btnItems" disabled style="position: absolute; margin-left: 525px; margin-top: 275px; height: 25px; width: 136px;" onclick="onbtnItemsClick()">Enter</button>
+
+    <label style="margin-top: 250px; margin-left: -25px;">Quantity:</label>
+    <label style="position: absolute; margin-left: 100px; margin-top: 250px;">Item:</label>
+    <label style="position: absolute; margin-left: 310px; margin-top: 250px;">Type:</label>
+
+    <label id="lblOutput" style="position: absolute; margin-top: 350px; height: 500px; width: 786px; border-style: dashed;"></label>
+
+    <button id="btnFinish" disabled style="position: absolute; margin-left: 675px; margin-top: 275px; height: 25px; width: 136px;" onclick="onbtnFinishClick()">Finish</button>
+
+    <label id="lblDaysOutput" style="position: absolute; margin-top: 875px; height: 33px; width: 800px;">Cumulative Day's Quantity: 0 Cumulative Day's Profit: $0.00</label>
+
+    <button id="btnClear" disabled style="position: absolute; margin-left: 640px; margin-top: 875px; height: 25px; width: 150px;" onclick="onbtnClearClick()">Clear Order</button>
+
+    <input id="chbxMember" type="checkbox" style="position: absolute; margin-left: 210px; margin-top: 133px;" />
+    <label id="lblMember" style="position: absolute; margin-top: 130px; margin-left: 230px;">Member?</label>
+    <label id="lblDate" style="position: absolute; margin-left: 180vh; margin-top: 2vw; height: 20px; width: 127px; border-style: dashed; background-color: white; text-align: center;">Temp</label>
+    <a class="backButton" href="main.html" style="text-decoration: none;">Back</a>
+
+    <h1 style="margin-top: 325px; margin-left: 1250px; text-align: center;">Code:</h1>
+    <div class="form-container">
+        <div class="vscode-field">
+            <code><object data="OrderingAppCode.txt" height="200px" width="2750px"></object></code>
+        </div>
+    </div>
+    <h3 style="margin-top: 760px; margin-left: -390px;">Written in Java</h3>
+</body>
+</html>

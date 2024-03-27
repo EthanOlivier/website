@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main</title>
+    <style>
+        body {
+            background-color: #7dd5f8;
+            display:flex;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .button {
+            border: 2px solid #000000;
+            background-color: rgb(251, 255, 0);
+            padding: 15px 32px;
+            text-align: center;
+            line-height: 800px;
+            font-size: 50px;
+            margin: 4px 2px;
+            height: 920px;
+            width:500px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        function mancalaButtonHovered() {
+            document.getElementById("output").innerText = "The game Mancala, a two-player board game where the goal is to have more stones in your scoring tile by the end of the game than your opponent. Complete with Capturing and Second Turns.";
+            var image = document.getElementById("image");
+            image.src = "mancala.png";
+            image.style.display = "block";
+        }
+        function orderingAppButtonHovered() {
+            document.getElementById("output").innerText = "An ordering app, based on one you may find as a cashier working in retail or fast food. This is a GUI panel-type form which takes in user input and outputs totals.";
+            var image = document.getElementById("image");
+            image.src = "orderingApp.png";
+            image.style.display = "block";
+        }
+    </script>
+    <a class="button mancala" href="mancala.html" style="text-decoration: none; position: fixed; bottom: 0vh; left: 0vw;" onmouseover="mancalaButtonHovered()">Mancala</a>
+    <a class="button orderingApp" href="orderingApp.html" style="text-decoration: none; position: fixed; bottom: 0vh; left: 30vw;" onmouseover="orderingAppButtonHovered()">Ordering App</a>
+    <label id="output" style=" margin-left: 120vh; margin-top: 0vw; height: 950px; width: 700px; border-style: dashed; font-size: 40px; text-align: center;"></label>
+    <img id="image" src="" height="605px" width="700px" style="position: absolute; margin-left: 120vh; margin-top: 18vw; display: none;">
+</body>
+</html>
